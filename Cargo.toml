@@ -1,0 +1,31 @@
+[package]
+name = "kill_open_v2"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.82"
+crossbeam = "0.8.4"
+parking_lot = "0.12.1"
+tasklist = "0.2.13"
+thiserror = "1.0.58"
+
+
+[profile.dev.package."*"]
+opt-level = 3
+codegen-units = 1
+
+[profile.dev]
+opt-level = 1
+codegen-units = 256
+
+[profile.release]
+opt-level = "z"
+codegen-units = 1
+debug = "none"
+strip = "symbols"
+debug-assertions = false
+lto = "fat"
+panic = "abort"
