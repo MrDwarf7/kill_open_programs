@@ -1,9 +1,6 @@
-use anyhow::Result;
-use parking_lot::Mutex;
-use std::sync::Arc;
-use tasklist::Process;
-
-use super::Utils;
+use crate::exit_codes::AppError;
+use crate::prelude::*;
+use crate::utils::Utils;
 
 pub struct Finder {
     pub app_name: String,
