@@ -1,0 +1,48 @@
+name: Rust Windows Build
+on:
+  push:
+    paths-ignore:
+      - ".vscode/**"
+      - 'README.md'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+#
+env:
+  RUST_BACKTRACE: full
+  CARGO_TERM_COLOR: always
+#
+defaults:
+  run:
+    shell: bash
+#
+jobs:
+  build:
+    name: Build on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      #
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt, clippy
+          target: x86_64-pc-windows-msvc
+          default: true
+      #
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      #
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
