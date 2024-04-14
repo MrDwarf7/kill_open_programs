@@ -4,7 +4,7 @@ function spawn() {
     )
     # programs array to pick from
     # $programs = @("notepad.exe", "mspaint.exe", "explorer.exe", "calc.exe")
-    $programs = @("notepad.exe", "mspaint")
+    $programs = @("notepad.exe")
 
     for ($i = 0; $i -lt $Count; $i++) {
         $randomItem = Get-Random -InputObject $programs
