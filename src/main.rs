@@ -9,11 +9,6 @@ mod parser;
 mod prelude;
 mod utils;
 
-// TODO: Implement bubble up for error codes & have main call run_app() to handle the error codes.
-//
-// mod exit_codes;
-// use exit_codes::ExitCodes;
-
 use anyhow::Result;
 use finder::Finder;
 use parser::Parser;
@@ -28,9 +23,7 @@ fn main() -> Result<()> {
     let mut parser = Parser::new(std::env::args().collect::<Vec<String>>());
     parser.parse_arg()?;
 
-    dbg!(parser.args.clone());
     let (tx, rx) = crossbeam::channel::unbounded();
-
     let process_list = Arc::new(Mutex::new(Vec::new()));
 
     unsafe {
@@ -45,14 +38,10 @@ fn main() -> Result<()> {
                 s.spawn(move |_| {
                     match Finder::find_processes(arg.to_string(), process_list_clone) {
                         Ok(processes) => {
-                            println!("Found processes: {:?}", processes.lock());
                             tx.send(processes).unwrap();
                             drop(tx);
                         }
                         Err(e) => {
-                            // NOTE: Exit here if len is 0, or if there are no processes found
-                            println!("Error: {}", e);
-                            println!("Error in the Finder::find_processes() function...")
                         }
                     }
                 });
@@ -67,19 +56,12 @@ fn main() -> Result<()> {
 
             match proc_list_len {
                 0 => {
-                    // NOTE: Exit here if len is 0
-                    println!("No processes found... in main length check");
                 }
                 _ => {
-                    let cur_thread = std::thread::current();
-                    dbg!(cur_thread.id());
 
                     s.spawn(move |_| {
                         let processes = rx.recv().unwrap();
-                        println!("RX received data from the TX channel...");
 
-                        let cur_thread = std::thread::current();
-                        dbg!(cur_thread.id());
 
                         for process in processes.lock().iter() {
                             tasklist::kill(process.pid);
