@@ -1,82 +1,52 @@
-use std::fmt::Display;
-
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub struct ExitReasons {
-    pub reason: String,
-    pub code: i32,
+pub enum AppError {
+    //
+    #[allow(dead_code)]
+    #[error("Error: {0}")]
+    Error(String),
+
+    #[error("Argument length must be greater than 0...")]
+    ArgLengthIsZero,
+
+    #[error("Argument could not be parsed to a string...")]
+    ArgNotPassableToString,
+
+    #[error("No matching processes found, name of process: pid: {pid} name: {pname}...")]
+    NoMatchingProcessesFound { pid: u32, pname: String },
+
+    #[error("Searched process list has a length of 0...")]
+    ProcessListLengthIsZero,
+
+    #[error("Attempt to kill process was unsuccessful...")]
+    ProcessKillFailed,
+
+    #[error("Unexpected error occurred...")]
+    UnexpectedError,
+
+    #[error("Threading error: {0}")]
+    ThreadingError(String),
 }
 
-impl Display for ExitReasons {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.reason)
+impl From<std::io::Error> for AppError {
+    fn from(_error: std::io::Error) -> Self {
+        AppError::UnexpectedError
     }
 }
 
-#[derive(Error, Debug)]
-pub enum ExitCodes {
-    #[error("Error: {0}")]
-    ExitCodeError(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeOk(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotFound(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeFound(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeUnknown(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeInvalid(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotImplemented(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotSupported(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotReady(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotAvailable(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotPermitted(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotAuthorized(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotValid(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutable(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableFile(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutablePath(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableCommand(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableProgram(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableScript(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableBinary(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableLibrary(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableService(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableDaemon(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableKernel(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableSystem(ExitReasons),
-    #[error("Error: {0}")]
-    ExitCodeNotExecutableUser(ExitReasons),
-}
-
-impl ExitCodes {
-    pub fn exit_code_error(reason: String) -> Self {
-        Self::ExitCodeError(ExitReasons { reason, code: 1 })
-    }
-
-    pub fn process_exit_code_error(reason: String) -> ! {
-        eprintln!("{}", Self::exit_code_error(reason));
-        std::process::exit(1);
+impl AppError {
+    pub fn exit(&self) -> ! {
+        // eprintln!("{}", self);
+        std::process::exit(match self {
+            AppError::ArgLengthIsZero => 1,
+            AppError::ArgNotPassableToString => 2,
+            AppError::NoMatchingProcessesFound { .. } => 3,
+            AppError::ProcessListLengthIsZero => 4,
+            AppError::ProcessKillFailed => 5,
+            AppError::UnexpectedError => 6,
+            AppError::Error(_) => 7,
+            AppError::ThreadingError(_) => 8,
+        });
     }
 }
