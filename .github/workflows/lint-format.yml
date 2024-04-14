@@ -1,33 +1,31 @@
-name: Windows - Build and Release
+name: Windows - Lint and Fmt
 
 permissions:
   contents: write
 
 on:
   push:
-    tags:
-      - "v*.*.*"
     paths-ignore:
       - ".vscode/**"
       - "README.md"
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main
+      - dev
 #
 defaults:
   run:
     shell: bash
 #
 env:
-  RUST_BACKTRACE: full
   CARGO_TERM_COLOR: always
-  ARTIFACT_NAME: kill_open_programs.exe
 #
 jobs:
-  build-windows:
-    name: Build and Release
+  lint-fmt-windows:
+    name: Lint and Fmt on Windows
     runs-on: windows-latest
     #
     steps:
@@ -54,20 +52,14 @@ jobs:
             target/
           key: windows-cargo-${{ hashFiles('**/Cargo.lock') }}
       #
-      - name: Build
+      - name: Run fmt
         uses: actions-rs/cargo@v1
         with:
-          command: build
-          args: --release
+          command: fmt
+          args: --all --check
       #
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - name: Run lint
+        uses: actions-rs/cargo@v1
         with:
-          files: target/release/${{ env.ARTIFACT_NAME }}
-          prerelease: false
-          draft: true
-          name: ${{ env.ARTIFACT_NAME }}_${{ github.run_number }}
-          # name: ${{ github.ARTIFACT }}_${{ github.run_number }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generate_release_notes: true
-          make_latest: true
+          command: clippy
+          args: -- -W clippy::pedantic"
