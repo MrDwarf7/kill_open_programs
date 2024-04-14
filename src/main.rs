@@ -3,8 +3,10 @@ extern crate crossbeam;
 extern crate tasklist;
 extern crate thiserror;
 
+mod exit_codes;
 mod finder;
 mod parser;
+mod prelude;
 mod utils;
 
 // TODO: Implement bubble up for error codes & have main call run_app() to handle the error codes.
@@ -12,13 +14,15 @@ mod utils;
 // mod exit_codes;
 // use exit_codes::ExitCodes;
 
+use anyhow::Result;
 use finder::Finder;
 use parser::Parser;
-use utils::Utils;
-
-use anyhow::Result;
-use parking_lot::Mutex;
-use std::sync::Arc;
+use prelude::{
+    AppError,
+    //
+    Arc,
+    Mutex,
+};
 
 fn main() -> Result<()> {
     let mut parser = Parser::new(std::env::args().collect::<Vec<String>>());
