@@ -21,7 +21,7 @@ use prelude::{
 
 fn main() -> Result<(), AppError> {
     match run() {
-        Ok(_) => Ok(()),
+        Ok(()) => Ok(()),
         Err(e) => Err(e),
     }
 }
