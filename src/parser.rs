@@ -1,4 +1,4 @@
-use anyhow::Result;
+use crate::exit_codes::AppError;
 
 #[derive(Debug, Clone)]
 pub struct Parser {
@@ -11,24 +11,19 @@ impl Parser {
 
         match args.len() {
             0 => {
-                // NOTE:: Exit here if no arguments are provided
-                println!("No arguments provided...");
-                std::process::exit(1);
+                AppError::ArgLengthIsZero.exit();
             }
             _ => Self { args },
         }
     }
 
-    pub fn parse_arg(&mut self) -> Result<()> {
+    pub fn parse_arg(&mut self) {
         self.args.iter_mut().for_each(|a| {
             a.parse::<String>()
-                .map_err(|e| {
-                    // NOTE: Exit here if there is an error parsing the arguments
-                    println!("Error: {}", e);
-                    println!("Error parsing arguments...")
+                .map_err(|_e| {
+                    AppError::ArgNotPassableToString.exit();
                 })
                 .unwrap();
         });
-        Ok(())
     }
 }
