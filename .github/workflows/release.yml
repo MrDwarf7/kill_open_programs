@@ -19,12 +19,13 @@ defaults:
     shell: bash
 #
 jobs:
-  build:
-    name: Build on Windows
+  build-test-windows:
+    name: Build and Test on Windows
     runs-on: windows-latest
+    #
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       #
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -34,6 +35,17 @@ jobs:
           components: rustfmt, clippy
           target: x86_64-pc-windows-msvc
           default: true
+      #
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: windows-cargo-${{ hashFiles('**/Cargo.lock') }}
       #
       - name: Build
         uses: actions-rs/cargo@v1
@@ -45,4 +57,27 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --verbose
+      #
+      - name: Run fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all --check
+      #
+      - name: Run lint
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -W clippy::pedantic"
+      #
+      - name: Prepare Artifacts
+        run: |
+          cd target/release
+          echo "ARTIFACT=kill_open_programs.exe" >> $GITHUB_ENV
+        shell: bash
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: target/release/${{ env.ARTIFACT }}
 
