@@ -13,13 +13,20 @@ use anyhow::Result;
 use finder::Finder;
 use parser::Parser;
 use prelude::{
-    AppError,
     //
+    AppError,
     Arc,
     Mutex,
 };
 
-fn main() -> Result<()> {
+fn main() -> Result<(), AppError> {
+    match run() {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
+}
+
+fn run() -> std::result::Result<(), AppError> {
     let mut parser = Parser::new(std::env::args().collect::<Vec<String>>());
     parser.parse_arg();
 
