@@ -11,43 +11,30 @@ impl Finder {
     ///
     /// This function is unsafe because it accesses and manipulates external processes.
     pub unsafe fn find_processes(
-        app_name: String,
-        collection_vec: Arc<Mutex<Vec<Process>>>,
-    ) -> Result<Arc<Mutex<Vec<Process>>>> {
+        app_name: &str,
+        collection_vec: ArcMutexVec,
+    ) -> std::result::Result<ArcMutexVec, AppError> {
         let tl = tasklist::Tasklist::new();
         let target_variations = Utils::generate_variations(app_name);
 
         let mut filtered_tasks: Vec<Process> = Vec::new();
 
-        // process is a reference to each Process struct in the tasklist.(ie: each system process)
         tl.into_iter().for_each(|process| {
-            match Utils::test_if_match(&process, &target_variations) {
-                Ok(matched_processes) => {
-                    filtered_tasks.extend(matched_processes);
-                }
-                Err(e) => {
-                    // NOTE: Exit here if len is 0, or if there are no processes found
-                    println!("Error: {}", e);
-                    println!("No processes found... in Finder as a match error")
-                }
-            }
+            let matched_processes = Utils::test_if_match(&process, target_variations.as_slice());
+            filtered_tasks.extend(matched_processes);
         });
-
-        println!("Filtered tasks: {:?}", filtered_tasks);
 
         filtered_tasks.drain(..).for_each(|process| {
             collection_vec.lock().push(process);
         });
 
-        dbg!(&collection_vec);
-
-        match collection_vec.lock().is_empty() {
-            true => {
-                // NOTE: Exit here if len is 0
-                println!("No processes found... in Finder as a match error");
-            }
-            false => {}
+        if collection_vec.lock().len() == 0 {
+            return Err(AppError::NoMatchingProcessesFound {
+                pid: 0,
+                pname: target_variations.first().unwrap().clone(),
+            });
         }
+
         Ok(collection_vec)
     }
 }
