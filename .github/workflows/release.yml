@@ -56,12 +56,12 @@ jobs:
       #
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: target/release/${{ env.ARTIFACT }}
       - run: |
           cd target/release
           echo "ARTIFACT=kill_open_programs.exe" >> $GITHUB_ENV
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: target/release/${{ env.ARTIFACT }}
       #
       - name: Release
         uses: softprops/action-gh-release@v2
