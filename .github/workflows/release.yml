@@ -13,7 +13,6 @@ on:
 env:
   RUST_BACKTRACE: full
   CARGO_TERM_COLOR: always
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #
 defaults:
   run:
