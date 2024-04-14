@@ -21,7 +21,7 @@ use prelude::{
 
 fn main() -> Result<()> {
     let mut parser = Parser::new(std::env::args().collect::<Vec<String>>());
-    parser.parse_arg()?;
+    parser.parse_arg();
 
     let (tx, rx) = crossbeam::channel::unbounded();
     let process_list = Arc::new(Mutex::new(Vec::new()));
@@ -35,17 +35,24 @@ fn main() -> Result<()> {
                 let tx = tx.clone();
                 let process_list_clone = Arc::clone(&process_list);
 
-                s.spawn(move |_| {
-                    match Finder::find_processes(arg.to_string(), process_list_clone) {
+                s.spawn(
+                    move |_| match Finder::find_processes(arg, process_list_clone) {
                         Ok(processes) => {
                             tx.send(processes).unwrap();
                             drop(tx);
                         }
-                        Err(e) => {
+                        Err(_e) => {
+                            AppError::ProcessListLengthIsZero.exit();
                         }
-                    }
-                });
+                    },
+                );
             });
+        })
+        .map_err(|_e| {
+            AppError::ThreadingError(
+                "Failure during the first thread for finding processes: {}".to_string(),
+            )
+            .exit();
         })
         .unwrap();
 
@@ -56,21 +63,26 @@ fn main() -> Result<()> {
 
             match proc_list_len {
                 0 => {
+                    AppError::ProcessListLengthIsZero.exit();
                 }
                 _ => {
-
                     s.spawn(move |_| {
                         let processes = rx.recv().unwrap();
 
-
                         for process in processes.lock().iter() {
-                            tasklist::kill(process.pid);
+                            if !tasklist::kill(process.pid) {
+                                AppError::ProcessKillFailed.exit();
+                            }
                         }
                     });
                 }
             }
         })
-        .unwrap();
+        .map_err(|_e| {
+            AppError::ThreadingError(
+                "Failure duriung the second thread for killing processes: {}".to_string(),
+            )
+        })?;
     }
     Ok(())
 }
