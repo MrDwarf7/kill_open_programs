@@ -17,6 +17,7 @@ codegen-units = 1
 [profile.dev]
 opt-level = 1
 codegen-units = 256
+incremental = true
 
 [profile.release]
 opt-level = "z"
@@ -26,3 +27,4 @@ strip = "symbols"
 debug-assertions = false
 lto = "fat"
 panic = "abort"
+incremental = true
