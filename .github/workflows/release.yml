@@ -21,7 +21,7 @@ defaults:
 #
 jobs:
   build-windows:
-    name: release
+    name: Build and Release
     runs-on: windows-latest
     #
     steps:
@@ -54,18 +54,12 @@ jobs:
           command: build
           args: --release
       #
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-      - run: |
-          cd target/release
-          echo "ARTIFACT=kill_open_programs.exe" >> $GITHUB_ENV
-        with:
-          name: ${{ env.ARTIFACT }}
-          path: target/release/${{ env.ARTIFACT }}
-      #
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          run: |
+            cd target/release
+            echo "ARTIFACT=$(ls | grep .exe)" >> $GITHUB_ENV
           files: target/release/${{ env.ARTIFACT }}
           prerelease: false
           draft: true
