@@ -67,7 +67,6 @@ jobs:
           prerelease: false
           draft: true
           name: ${{ env.ARTIFACT_NAME }}_${{ github.run_number }}
-          # name: ${{ github.ARTIFACT }}_${{ github.run_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           make_latest: true
